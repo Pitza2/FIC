@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FIC": {
+      "commandName": "Project",
+      "commandLineArgs": "caca cacac cacac"
+    }
+  }
+}

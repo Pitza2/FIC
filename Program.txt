@@ -1,0 +1,9 @@
+INP R1
+INP R2
+JMS proc
+OUT R1
+HLT
+
+
+proc ADD R1 R2
+RET
