@@ -42,7 +42,7 @@ namespace FIC
             }
             catch { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }           
         }
-        void INP(string[] args)
+        public void INP(string[] args)
         {
             short val;
             Console.WriteLine("input:");
@@ -50,28 +50,30 @@ namespace FIC
             processor.StoreRegister(args[0], val);
         }
 
-        void OUT(string[] args)
+        public void OUT(string[] args)
         {
             processor.PrintRegister(args[0]);
         }
-        void BRA(string[] args)
+        public void BRA(string[] args)
         {
             if (args.Count() > 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
             processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0])-1));
         }
-        void JMS(string[] args)
+        public void JMS(string[] args)
         {
             if (args.Count() > 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
             processor.StoreRegister("LR", processor.getRegisterValue("PC"));
             processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
         }
-        void RET(string[] args)
+        public void RET(string[] args)
         {
             if (args.Count() != 0) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
             processor.StoreRegister("PC", (short)(processor.getRegisterValue("LR")));
         }
+
+        
     }
 }
