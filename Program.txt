@@ -3,7 +3,11 @@ INP R2
 JMS proc
 OUT R1
 HLT
-
-
-proc ADD R1 R2
-RET
+proc PSH {LR}
+CMP R2 0
+BEQ end
+ADD R1 R2
+SUB R2 1
+JMS proc
+POP {PC}
+end POP {PC}

@@ -12,18 +12,26 @@ namespace FIC
         public IProcessor processor { get; set; }
         public IArithmeticLogicUnit alu { get; set; }
         Dictionary<string, Action<string[]>> operations;
-
+        Flags f;
         public ControlUnit(IProcessor processor)
         {
             operations = new Dictionary<string, Action<string[]>>
             {
                 {"INP",INP}
                 ,{"OUT",OUT}
-                ,{"BRA",BRA}
                 ,{"JMS", JMS}
                 ,{"RET", RET}
+                ,{"PSH",PSH}
+                ,{"POP",POP}
+                ,{"BRA",BRA}
+                ,{"BEQ",BEQ}
+                ,{"BLE",BLE}
+                ,{"BLT",BLT}
+                ,{"BVS",BVS}
+
             };
             this.processor = processor;
+            f = Flags.GetFlags();
         }
         public void Execute(string instruction)
         {
@@ -54,12 +62,7 @@ namespace FIC
         {
             processor.PrintRegister(args[0]);
         }
-        public void BRA(string[] args)
-        {
-            if (args.Count() > 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
-            processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0])-1));
-        }
         public void JMS(string[] args)
         {
             if (args.Count() > 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
@@ -73,7 +76,63 @@ namespace FIC
 
             processor.StoreRegister("PC", (short)(processor.getRegisterValue("LR")));
         }
+        public void PSH(string[] args)
+        {
+            if (args.Count() > 1 && args[0][0]!='{' || args[0][args[0].Length-1]!='}')
+            { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
-        
+            processor.WriteStack(processor.getRegisterValue(args[0].Substring(1, args[0].Length-2)));
+            processor.StoreRegister("SP", (short)(processor.getRegisterValue("SP") - 1));
+        }
+        public void POP(string[] args)
+        {
+            if (args.Count() > 1 && args[0][0] != '{' || args[0][args[0].Length - 1] != '}')
+            { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            processor.ReadStack(args[0].Substring(1, args[0].Length - 2));
+            processor.StoreRegister("SP", (short)(processor.getRegisterValue("SP") + 1));
+        }
+        public void BEQ(string[] args)
+        {
+            if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if ((f.flags & Flags.SET_ZERO) != 0)
+            {
+                processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+            }
+        }
+        public void BLE(string[] args)
+        {
+            if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if ((f.flags & Flags.SET_NEGATIVE) != 0 || (f.flags & Flags.SET_ZERO) != 0)
+            {
+                processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+            }
+        }
+
+        public void BLT(string[] args)
+        {
+            if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if ((f.flags & Flags.SET_NEGATIVE) != 0)
+            {
+                processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+            }
+        }
+
+        public void BVS(string[] args)
+        {
+            if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if ((f.flags & Flags.SET_OVERFLOW) != 0)
+            {
+                processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+            }
+        }
+
+        public void BRA(string[] args)
+        {
+            if (args.Count() > 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+
+            processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+        }
+
+
     }
 }
