@@ -11,7 +11,7 @@ namespace FIC
     public class RiscProcessor : IProcessor
     {
         
-        static readonly string[] reservedKeywords = { "INP" ,"OUT", "ADD", "SUB", "MUL", "DIV", "BRA", "CMP", "BEQ", "HLT", "RET", "JMS" };
+        static readonly string[] reservedKeywords = { "INP" ,"OUT", "ADD", "SUB", "MUL", "DIV","PSH","POP", "BRA", "CMP", "BEQ", "HLT", "RET", "JMS","BEQ","BLE","BLT","BVS" };
         Dictionary<string, short> labelLine=new Dictionary<string, short>();
         Dictionary<string, short> registers;
         List<short> mainMemory;
@@ -29,12 +29,12 @@ namespace FIC
                 ,{"R5",0}
                 ,{"R6",0}
                 ,{"R7",0}
-                ,{"SP",400}
+                ,{"SP",399}
                 ,{"LR",0}
                 ,{"PC",0}
             };
             instructions = new List<string>();
-            mainMemory = new List<short>(400);
+            mainMemory = new List<short>(new short[400]);
             cu.processor = this;
             alu.processor = this;
             cu.alu= alu;
@@ -43,7 +43,7 @@ namespace FIC
         }
         public void load()
         {
-            string path = "C:\\Users\\nocti\\Desktop\\FIC\\Program.txt";
+            string path = "C:\\Users\\IO\\source\\repos\\FIC\\Program.txt";
             instructions.Clear();
             string[] preInstructions= File.ReadAllLines(path);
             preInstructions = preInstructions.Where(x => x != string.Empty).ToArray();
@@ -55,7 +55,7 @@ namespace FIC
                 {
                     labelLine.Add(tokens[0], (short)(i));
                     preInstructions[i] = preInstructions[i].Trim().Substring(preInstructions[i].IndexOf(" ")+1);
-                    Console.WriteLine(preInstructions[i]);
+                   
 
                 }
             }
@@ -72,6 +72,19 @@ namespace FIC
         }
         public void StoreRegister(string reg,short value) {
             registers[reg] = value;
+        }
+        public void WriteStack(short val)
+        {
+            mainMemory[getRegisterValue("SP")] = val;
+        }
+        public void ReadStack(string arg)
+        {
+            StoreRegister(arg, mainMemory[getRegisterValue("SP") + 1]);
+            mainMemory[getRegisterValue("SP") + 1] = 0;
+        }
+        public void WriteToMainMem(short val, int location)
+        {
+            mainMemory[location] = val;
         }
         public void PrintRegister(string reg) {
             Console.WriteLine(registers[reg]);
