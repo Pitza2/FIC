@@ -43,7 +43,7 @@ namespace FIC
         }
         public void load()
         {
-            string path = "C:\\Users\\IO\\source\\repos\\FIC\\Program.txt";
+            string path = "C:\\Users\\nocti\\source\\repos\\FIC\\Program.txt";
             instructions.Clear();
             string[] preInstructions= File.ReadAllLines(path);
             preInstructions = preInstructions.Where(x => x != string.Empty).ToArray();

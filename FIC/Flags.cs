@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FIC
 {
-    internal class Flags
+    public class Flags
     {
         public short flags;
         static Flags f;
