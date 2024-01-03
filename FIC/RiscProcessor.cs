@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,9 @@ namespace FIC
     public class RiscProcessor : IProcessor
     {
         
-        static readonly string[] reservedKeywords = { "INP" ,"OUT", "ADD", "SUB", "MUL", "DIV","PSH","POP", "BRA", "CMP", "BEQ", "HLT", "RET", "JMS","BEQ","BLE","BLT","BVS" };
+        static readonly string[] reservedKeywords = {
+            "INP" ,"OUT", "ADD", "SUB", "MUL", "DIV","PSH","POP", "BRA", "CMP", "BEQ", "HLT", "RET", "JMS","BEQ","BLE","BGT","BLT","BVS","LDR","STR","MOV"
+        };
         Dictionary<string, short> labelLine=new Dictionary<string, short>();
         Dictionary<string, short> registers;
         List<short> mainMemory;
@@ -53,10 +56,19 @@ namespace FIC
                 string[] tokens = preInstructions[i].Split(' ');
                 if (!reservedKeywords.Contains(tokens[0]))
                 {
+                    if(tokens.Length > 1)
+                    {
+                        short n;
+                        if (short.TryParse(tokens[1], out n))
+                        {
+                            labelLine.Add(tokens[0], n);
+                            preInstructions[i] = preInstructions[i].Trim().Substring(preInstructions[i].IndexOf(" ") + 1);
+                            continue;
+                        }
+                        
+                    }
                     labelLine.Add(tokens[0], (short)(i));
                     preInstructions[i] = preInstructions[i].Trim().Substring(preInstructions[i].IndexOf(" ")+1);
-                   
-
                 }
             }
             instructions = preInstructions.ToList();
@@ -71,6 +83,11 @@ namespace FIC
             }
         }
         public void StoreRegister(string reg,short value) {
+            if (reg[0] == '[' && reg[reg.Length - 1] == ']')
+            {
+                mainMemory[registers[reg.Substring(1, reg.Length - 2)]]= value;
+                return;
+            }
             registers[reg] = value;
         }
         public void WriteStack(short val)
@@ -86,10 +103,23 @@ namespace FIC
         {
             mainMemory[location] = val;
         }
-        public void PrintRegister(string reg) {
-            Console.WriteLine(registers[reg]);
+        public void PrintRegister(string reg)
+        {
+            if (reg[0] == '[' && reg[reg.Length - 1] == ']')
+            {
+                Console.WriteLine(mainMemory[registers[reg.Substring(1, reg.Length - 2)]]);
+                return;
+            }
+                Console.WriteLine(registers[reg]);
         }
-        public short getRegisterValue(string reg) { return registers[reg]; }
+        public short getRegisterValue(string reg){
+            if (labelLine.ContainsKey(reg)) { return labelLine[reg]; }
+            if (reg[0]=='[' && reg[reg.Length - 1] == ']')
+            {
+                return mainMemory[registers[reg.Substring(1, reg.Length - 2)]];
+            }
+            return registers[reg];
+        }
         public short getLabelValue(string reg) { return labelLine[reg]; }
         public List<string> getInstructions()
         {

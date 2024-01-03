@@ -1,13 +1,44 @@
-INP R1
-INP R2
-JMS proc
+start INP R0
+JMS _read
+JMS _print
+JMS _maxval
 OUT R1
 HLT
-proc PSH {LR}
-CMP R2 0
-BEQ end
-ADD R1 R2
-SUB R2 1
-JMS proc
+arrayaddr 150
+_read PSH {LR}
+MOV R2 0
+LDR R3 arrayaddr
+L1 INP R4
+STR R4 [R3]
+ADD R3 1
+ADD R2 1
+CMP R2 R0
+BLT L1
 POP {PC}
-end POP {PC}
+RET
+_print PSH {LR}
+MOV R2 0
+LDR R3 arrayaddr
+L2 LDR R4 [R3]
+OUT R4
+ADD R3 1
+ADD R2 1
+CMP R2 R0
+BLT L2
+POP {PC}
+RET
+_maxval PSH {LR}
+MOV R2 0
+MOV R4 0
+LDR R3 arrayaddr
+L3 LDR R5 [R3]
+CMP R4 R5
+BGT incr
+MOV R4 R5
+incr ADD R3 1
+ADD R2 1
+CMP R2 R0
+BLT L3
+MOV R1 R4
+POP {PC}
+RET
