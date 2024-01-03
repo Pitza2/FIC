@@ -26,8 +26,12 @@ namespace FIC
                 ,{"BRA",BRA}
                 ,{"BEQ",BEQ}
                 ,{"BLE",BLE}
+                ,{"BGT",BGT}
                 ,{"BLT",BLT}
                 ,{"BVS",BVS}
+                ,{"LDR",LDR}
+                ,{"MOV",MOV}
+                ,{"STR",STR}
 
             };
             this.processor = processor;
@@ -39,6 +43,16 @@ namespace FIC
             List<string> tokens = instruction.Split(' ').ToList();
 
             if (tokens.Count > 3) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if (tokens[0] == "LDR" || tokens[0] == "STR" || tokens[0] == "MOV")
+            {
+                try
+                {
+                    operations[tokens[0]](tokens.Skip(1).ToArray());
+                    return;
+                }
+                catch { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+
+            }
             if (tokens.Count == 3)
             {
                 alu.Calculate(tokens[0], tokens.Skip(1).ToArray());
@@ -47,8 +61,9 @@ namespace FIC
             try
             {
                 operations[tokens[0]](tokens.Skip(1).ToArray());
+                return;
             }
-            catch { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }           
+            catch { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
         }
         public void INP(string[] args)
         {
@@ -78,10 +93,10 @@ namespace FIC
         }
         public void PSH(string[] args)
         {
-            if (args.Count() > 1 && args[0][0]!='{' || args[0][args[0].Length-1]!='}')
+            if (args.Count() > 1 && args[0][0] != '{' || args[0][args[0].Length - 1] != '}')
             { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
-            processor.WriteStack(processor.getRegisterValue(args[0].Substring(1, args[0].Length-2)));
+            processor.WriteStack(processor.getRegisterValue(args[0].Substring(1, args[0].Length - 2)));
             processor.StoreRegister("SP", (short)(processor.getRegisterValue("SP") - 1));
         }
         public void POP(string[] args)
@@ -103,6 +118,15 @@ namespace FIC
         {
             if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
             if ((f.flags & Flags.SET_NEGATIVE) != 0 || (f.flags & Flags.SET_ZERO) != 0)
+            {
+                processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
+            }
+        }
+
+        public void BGT(string[] args)
+        {
+            if (args.Count() != 1) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if ((f.flags & Flags.SET_NEGATIVE) == 0 || (f.flags & Flags.SET_ZERO) != 0)
             {
                 processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
             }
@@ -132,7 +156,36 @@ namespace FIC
 
             processor.StoreRegister("PC", (short)(processor.getLabelValue(args[0]) - 1));
         }
+        public void LDR(string[] args)
+        {
+            if (args.Count() != 2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
 
+            int num;
+            if (int.TryParse(args[1], out num))
+            {
+                processor.StoreRegister(args[0], (short)num);
+                return;
+            }
+
+            processor.StoreRegister(args[0], processor.getRegisterValue(args[1]));
+        }
+        public void MOV(string[] args)
+        {
+            if (args.Count() != 2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            int num;
+            if (int.TryParse(args[1], out num))
+            {
+                processor.StoreRegister(args[0], (short)num);
+                return;
+            }
+            processor.StoreRegister(args[0], processor.getRegisterValue(args[1]));
+        }
+        public void STR(string[] args)
+        {
+            if (args.Count() != 2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+
+            processor.StoreRegister(args[1], processor.getRegisterValue(args[0]));
+        }
 
     }
 }

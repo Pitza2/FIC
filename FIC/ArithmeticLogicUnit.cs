@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FIC
 {
-    public class ArithmeticLogicUnit :IArithmeticLogicUnit
+    public class ArithmeticLogicUnit : IArithmeticLogicUnit
     {
         public IProcessor processor { get; set; }
         Dictionary<string, Action<string[]>> operations;
@@ -22,11 +22,11 @@ namespace FIC
                 ,{"MUL",MUL}
                 ,{"DIV",DIV}
                 ,{"CMP",CMP}
-                
+
             };
             this.processor = processor;
             f = Flags.GetFlags();
-            
+
         }
         private void setNegZeroFlags(string arg1)
         {
@@ -46,23 +46,23 @@ namespace FIC
             {
                 f.flags = (short)(f.flags | Flags.SET_OVERFLOW);
             }
-            if (num1-num2 == 0)
+            if (num1 - num2 == 0)
             {
                 f.flags = (short)(f.flags | Flags.SET_ZERO);
             }
-            if ((num1-num2) < 0)
+            if ((num1 - num2) < 0)
             {
                 f.flags = (short)(f.flags | Flags.SET_NEGATIVE);
             }
         }
-        private void setADDFlags(short num1,short num2,string arg1)
+        private void setADDFlags(short num1, short num2, string arg1)
         {
             f.flags = 0;
-            if(num2 > 0 && num1 > short.MaxValue - num2 || num2 < 0 && num1 < int.MinValue - num2)
+            if (num2 > 0 && num1 > short.MaxValue - num2 || num2 < 0 && num1 < int.MinValue - num2)
             {
                 f.flags = (short)(f.flags | Flags.SET_OVERFLOW);
             }
-           setNegZeroFlags(arg1);
+            setNegZeroFlags(arg1);
         }
         private void setSUBFlags(short num1, short num2, string arg1)
         {
@@ -73,7 +73,7 @@ namespace FIC
             }
             setNegZeroFlags(arg1);
         }
-        private void setMULFlags(short num1,short num2,string arg1)
+        private void setMULFlags(short num1, short num2, string arg1)
         {
             f.flags = 0;
             if (num1 > int.MaxValue / num2 || num1 < int.MinValue / num2)
@@ -87,21 +87,22 @@ namespace FIC
             operations[instr](args);
         }
 
-        public void ADD(string[] args) 
+        public void ADD(string[] args)
         {
-            if(args.Count()!=2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
+            if (args.Count() != 2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
             int num;
-            if (int.TryParse(args[1], out num)){
+            if (int.TryParse(args[1], out num))
+            {
 
                 processor.StoreRegister(args[0], (short)(processor.getRegisterValue(args[0]) + num));
                 setADDFlags(processor.getRegisterValue(args[0]), (short)num, args[0]);
                 return;
             }
-           
+
             processor.StoreRegister(args[0], (short)(processor.getRegisterValue(args[0]) + processor.getRegisterValue(args[1])));
             setADDFlags(processor.getRegisterValue(args[0]), processor.getRegisterValue(args[1]), args[0]);
         }
-        public void SUB(string[] args) 
+        public void SUB(string[] args)
         {
             if (args.Count() != 2) { throw new Exception($"ERROR AT LINE {processor.getRegisterValue("PC")}"); }
             int num;
@@ -136,7 +137,7 @@ namespace FIC
                 processor.StoreRegister(args[0], (short)(processor.getRegisterValue(args[0]) / num));
                 return;
             }
-            processor.StoreRegister(args[0], (short)(processor.getRegisterValue(args[0]) /  processor.getRegisterValue(args[1])));
+            processor.StoreRegister(args[0], (short)(processor.getRegisterValue(args[0]) / processor.getRegisterValue(args[1])));
         }
 
         public void CMP(string[] args)
